@@ -2,6 +2,6 @@
 yes
 
 
-XXO
-OXX
-XOO
+XXO  
+OXX  
+XOO  
