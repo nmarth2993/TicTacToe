@@ -12,11 +12,13 @@ public class TicTacToe {
 	JFrame frame;
 	GamePanel panel;
 
-	int current = 0;
+	int[][] board;
+	int[] winListX;
+	int[] winListY;
+	int current = X;
 	int xCount;
 	int oCount;
-//	Point[] winList;
-	int[][] board;
+	boolean gameOver;
 
 	public TicTacToe() {
 		frame = new JFrame("3T");
@@ -36,10 +38,14 @@ public class TicTacToe {
 			}
 		}
 
-//		winList = new Point[3];
-//		for (int i = 0; i < winList.length; i++) {
-//			winList[i] = new Point(-1, -1);
-//		}
+		winListX = new int[3];
+		winListY = new int[3];
+		for (int i = 0; i < winListX.length; i++) {
+			winListX[i] = -1;
+		}
+		for (int i = 0; i < winListY.length; i++) {
+			winListY[i] = -1;
+		}
 
 //		printBoard();
 	}
@@ -60,38 +66,51 @@ public class TicTacToe {
 		System.out.println(current == X ? "X" : "O");
 	}
 
-//	public void printWinList() {
-//		for (int i = 0; i < winList.length; i++) {
-//			System.out.println("(" + winList[i].getX() + ", " + winList[i].getY() + ")");
-//		}
-//	}
+	public void printWinList() {
+		for (int i = 0; i < winListX.length; i++) {
+			System.out.println("(" + winListX[i] + ", " + winListY[i] + ")");
+		}
+	}
 
 	public int checkWin() {
 		printBoard();
-		int win = -1;
 		for (int i = 0; i < board.length; i++) {
 			if (board[i][0] != -1 && board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
-//				winList[i] = new Point(i, 0);
-				win = board[i][0];
+				for (int j = 0; j < winListX.length; j++) {
+					winListX[j] = j;
+					winListY[j] = i;
+				}
+				System.out.println("winList: ");
+				printWinList();
+				return board[i][0];
 			}
 		}
-		System.out.println("win: " + win);
+		printWinList();
 		for (int i = 0; i < board.length; i++) {
 			if (board[0][i] != -1 && board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
-				win = board[0][i];
+				for (int j = 0; j < winListX.length; j++) {
+					winListX[j] = j;
+					winListY[j] = i;
+				}
+				return board[0][i];
 			}
 		}
-		System.out.println("win: " + win);
 		if (board[0][0] != -1 && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
-			win = board[0][0];
+			for (int j = 0; j < winListX.length; j++) {
+				winListX[j] = j;
+				winListY[j] = j;
+			}
+			return board[0][0];
 		}
-		System.out.println("win: " + win);
 		if (board[2][0] != -1 && board[2][0] == board[1][1] && board[1][1] == board[0][2]) {
-			win = board[2][0];
+			for (int j = 0; j < winListX.length; j++) {
+				winListX[j] = 0 + j;
+				winListY[j] = 2 - j;
+			}
+			return board[2][0];
 		}
-		System.out.println("win: " + win);
-//		printWinList();
-		return win;
+		printWinList();
+		return -1;
 	}
 
 	public void restart() {
@@ -103,21 +122,37 @@ public class TicTacToe {
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			Graphics2D g2d = (Graphics2D) g;
+			g2d.setStroke(new BasicStroke(5.0f));
 			g2d.drawLine(0, panel.getHeight() / 3, panel.getWidth(), panel.getHeight() / 3);
 			g2d.drawLine(0, 2 * panel.getHeight() / 3, panel.getWidth(), 2 * panel.getHeight() / 3);
 
 			g2d.drawLine(panel.getWidth() / 3, 0, panel.getWidth() / 3, panel.getHeight());
 			g2d.drawLine(2 * panel.getWidth() / 3, 0, 2 * panel.getWidth() / 3, panel.getHeight());
 
+//			System.out.println();
+			if (gameOver) {
+				printWinList();
+			}
+
 			for (int i = 0; i < board.length; i++) {
 				for (int j = 0; j < board[i].length; j++) {
+					g2d.setColor(Color.BLACK);
+					System.out.println("i: " + i);
+					System.out.println("j: " + j);
+					System.out.println("row: " + winListY[i]);
+					System.out.println("col: " + winListX[i]);
+					if (i == winListY[i] && j == winListX[i]) {
+						System.out.println("match found at: (" + winListX[i] + ", " + winListY[i] + ")");
+						g2d.setColor(Color.RED);
+					}
 					if (board[i][j] == -1) {
 						// don't draw anything
 					} else if (board[i][j] == 0) {
 						// o
-						g2d.drawOval(5 + i * panel.getWidth() / 3, 5 + j * panel.getHeight() / 3,
+						g2d.drawOval(7 + i * panel.getWidth() / 3, 7 + j * panel.getHeight() / 3,
 								panel.getWidth() / 3 - 15, panel.getHeight() / 3 - 15); // square width
 					} else if (board[i][j] == 1) {
+						// x
 						g2d.drawLine(i * panel.getWidth() / 3, j * panel.getHeight() / 3,
 								panel.getWidth() / 3 * (i + 1), panel.getHeight() / 3 * (j + 1));
 
@@ -133,7 +168,6 @@ public class TicTacToe {
 		Object[] options = { "Yes", "No" };
 		int turns;
 		int ans;
-		boolean gameOver;
 
 		public Mouse() {
 			gameOver = false;
@@ -141,7 +175,7 @@ public class TicTacToe {
 		}
 
 		@Override
-		public void mouseClicked(MouseEvent e) {
+		public void mouseReleased(MouseEvent e) {
 			if (turns >= 9 || gameOver) {
 				return;
 			}
@@ -155,6 +189,7 @@ public class TicTacToe {
 				turns++;
 				int winner = checkWin();
 				if (winner == X) {
+					panel.repaint();
 					ans = JOptionPane.showOptionDialog(null, "X WON!\nPlay again?", "Winner!",
 							JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]); // option
 					gameOver = true;
@@ -162,6 +197,7 @@ public class TicTacToe {
 						restart();
 					}
 				} else if (winner == O) {
+					panel.repaint();
 					ans = JOptionPane.showOptionDialog(null, "O WON!\nPlay again?", "Winner!",
 							JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]); // option
 					gameOver = true;
@@ -170,6 +206,7 @@ public class TicTacToe {
 					}
 				} else if (turns == 9) {
 					// cat's game
+					panel.repaint();
 					ans = JOptionPane.showOptionDialog(null, "Cat's game\nPlay again?", "Cat.",
 							JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]); // option
 					gameOver = true;
@@ -206,7 +243,7 @@ public class TicTacToe {
 		}
 
 		@Override
-		public void mouseReleased(MouseEvent e) {
+		public void mouseClicked(MouseEvent e) {
 			// TODO Auto-generated method stub
 
 		}
